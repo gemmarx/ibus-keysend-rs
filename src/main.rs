@@ -7,9 +7,7 @@ extern crate docopt;
 
 use docopt::Docopt;
 use std::io::prelude::*;
-use std::io::stderr;
-use std::process::exit;
-use std::fs::{File, read_dir};
+use std::{io, fs, process};
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
 
@@ -57,13 +55,13 @@ fn main() {
     let address = &(get_address().unwrap());
     if args.cmd_bus {
         println!("{}", address);
-        exit(0);
+        process::exit(0);
     }
 
     let connect = Connection::open_private(address)
                   .unwrap_or_else(|e| {
-                      let _ = stderr().write(e.message().unwrap().as_bytes());
-                      exit(1);
+                      let _ = io::stderr().write(e.message().unwrap().as_bytes());
+                      process::exit(1);
                   } );
     let message = make_message(args).unwrap();
     let _ = connect.send_with_reply_and_block(message, IBUS_SEND_WAIT);
@@ -71,11 +69,11 @@ fn main() {
 
 fn get_address() -> Option<String> {
     let home = std::env::var("HOME").unwrap();
-    let path = read_dir(home + "/.config/ibus/bus").unwrap()
+    let path = fs::read_dir(home + "/.config/ibus/bus").unwrap()
                .next().expect("Failed to get any files in the dir").unwrap()
                .path();
     let buff = &mut String::new();
-    let _ = File::open(path).unwrap()
+    let _ = fs::File::open(path).unwrap()
             .read_to_string(buff);
     let line   = buff.lines().nth(1).unwrap();
     let offset = 1 + line.find('=').unwrap();
