@@ -1,0 +1,7 @@
+
+C version cannot take any options.
+Rewrite ibus-keysend.h before make.
+
+Build:
+    $ make
+
