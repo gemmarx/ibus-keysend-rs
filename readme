@@ -1,10 +1,12 @@
 ibus-keysend - send a key event to the IBus daemon (on KKC engine).
 
 Before use, set key shortcuts on IBus-KKC as below,
-"(control j)" : "set-input-mode-hiragana",
-"(control l)" : "set-input-mode-direct",
+"(alt j)" : "set-input-mode-hiragana",
+"(alt l)" : "set-input-mode-direct",
 and it works as a mode shifter between Japanese and English input mode,
-or use "key" subcommand with the <keysym> you need.
+or use "key" subcommand with the <keysym> and -m <state> you need.
+Values of KeySym and State can be got by "xev".
+
 
 
 Build:
@@ -12,15 +14,18 @@ Build:
   $ cd ibus-keysend-rs
   $ cargo build --release
 
-  "ibus-keysend" command is built in "target/release/".
-  try "target/release/ibus-keysend bus".
+  The name of command is "ibus-keysend".
+  Try "target/release/ibus-keysend bus".
+
+Install:
+  $ cp target/release/ibus-keysend PATH/TO/BIN/
 
 
 
 Usage:
   ibus-keysend [off]
   ibus-keysend on
-  ibus-keysend key <keysym> [-m <mode>]
+  ibus-keysend key <keysym> [-m <state>]
   ibus-keysend bus
   ibus-keysend (-h | --help)
 
@@ -30,12 +35,15 @@ Options:
   on            Send "Alt-J".
   key           Send a key event as you like.
   <keysym>      The value of key symbol to send.
-  <mode>        Modifier mode: logical sum of (Shift(1) | Ctrl(2) | Alt(4)).
+  <state>       Modifier state:  logical sum of (Shift(1) | Ctrl(4) | Alt(8)).
   bus           Show the name of unix socket to connect with IBus.
 
 
 
 Example:
+  Send "Alt+Shift+Space"
+    $ ibus-keysend key 32 -m 5
+
   Send "Hiragana_Katakana"
     $ ibus-keysend key 65319
 

@@ -18,23 +18,24 @@ const IBUS_SEND_METHOD:    &'static str = "ProcessKeyEvent";
 const IBUS_SEND_WAIT: i32 = 1;  // [ms]?
 const DUMMY_ZERO:     u32 = 0;  // Use for keycodes, which have no sense.
 
-/* Key triplets: [Keysym, Keycode, Modifier-State] */
-const KEY_TO_ON:  [u32; 3] = [106, 44, 4];  // Alt-J
-const KEY_TO_OFF: [u32; 3] = [108, 46, 4];  // Alt-L
+/* Key triplets: [Keysym, Keycode, Modi8ier-State] */
+const KEY_TO_ON:  [u32; 3] = [106, 44, 8];  // Alt-J
+const KEY_TO_OFF: [u32; 3] = [108, 46, 8];  // Alt-L
 
 docopt!(Args derive Debug, "
 ibus-keysend - send a key event to the IBus daemon.
 
 Before use, set key shortcuts on IBus-KKC as below,
-\"(control j)\" : \"set-input-mode-hiragana\",
-\"(control l)\" : \"set-input-mode-direct\",
+\"(alt j)\" : \"set-input-mode-hiragana\",
+\"(alt l)\" : \"set-input-mode-direct\",
 and it works as a mode shifter between Japanese and English input mode,
-or use \"key\" subcommand with the <keysym> you need.
+or use \"key\" subcommand with the <keysym> and -m <state> you need.
+Values of KeySym and State can be got by \"xev\".
 
 Usage:
   ibus-keysend [off]
   ibus-keysend on
-  ibus-keysend key <keysym> [-m <mode>]
+  ibus-keysend key <keysym> [-m <state>]
   ibus-keysend bus
   ibus-keysend (-h | --help)
 
@@ -44,7 +45,7 @@ Options:
   on            Send \"Alt-J\".
   key           Send a key event as you like.
   <keysym>      The value of key symbol to send.
-  <mode>        Modifier mode: logical sum of (Shift(1) | Ctrl(2) | Alt(4)).
+  <state>       Modifier state:  logical sum of (Shift(1) | Ctrl(4) | Alt(8)).
   bus           Show the name of unix socket to connect with IBus.
 ", arg_keysym: u32, arg_mode: u32);
 
