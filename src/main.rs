@@ -29,7 +29,7 @@ Before use, set key shortcuts on IBus-KKC as below,
 \"(alt j)\" : \"set-input-mode-hiragana\",
 \"(alt l)\" : \"set-input-mode-direct\",
 and it works as a mode shifter between Japanese and English input mode,
-or use \"key\" subcommand with the <keysym> and -m <state> you need.
+or use \"key\" subcommand with the <keysym> you need.
 Values of KeySym and State can be got by \"xev\".
 
 Usage:
