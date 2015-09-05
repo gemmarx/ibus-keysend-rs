@@ -7,7 +7,7 @@ extern crate docopt;
 
 use docopt::Docopt;
 use std::io::prelude::*;
-use std::{io, fs, process};
+use std::{fs, process};
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
 
@@ -59,10 +59,7 @@ fn main() {
     }
 
     let connect = Connection::open_private(address)
-                  .unwrap_or_else(|e| {
-                      let _ = io::stderr().write(e.message().unwrap().as_bytes());
-                      process::exit(1);
-                  } );
+                  .unwrap_or_else(|e| {panic!("{}", e.message().unwrap())});
     let message = make_message(args).unwrap();
     let _ = connect.send_with_reply_and_block(message, IBUS_SEND_WAIT);
 }

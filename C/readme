@@ -1,5 +1,5 @@
 
-C version cannot take any options.
+C version, which cannot take any options.
 Edit ibus-keysend.h before make.
 
 Build:

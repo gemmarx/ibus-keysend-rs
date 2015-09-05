@@ -6,6 +6,7 @@ Before use, set key shortcuts on IBus-KKC as below,
 and it works as a mode shifter between Japanese and English input mode,
 or use "key" subcommand with the <keysym> you need.
 
+
 Build:
   $ git clone https://github.com/gemmarx/ibus-keysend-rs
   $ cd ibus-keysend-rs
@@ -13,6 +14,8 @@ Build:
 
   "ibus-keysend" command is built in "target/release/".
   try "target/release/ibus-keysend bus".
+
+
 
 Usage:
   ibus-keysend [off]
@@ -30,6 +33,8 @@ Options:
   <mode>        Modifier mode: logical sum of (Shift(1) | Ctrl(2) | Alt(4)).
   bus           Show the name of unix socket to connect with IBus.
 
+
+
 Example:
   Send "Hiragana_Katakana"
     $ ibus-keysend key 65319
@@ -39,6 +44,8 @@ Example:
 
   Send "Eisu_toggle"
     $ ibus-keysend key 65328
+
+
 
 See also:
   /usr/share/libkkc/rules/default/keymap/*.json
