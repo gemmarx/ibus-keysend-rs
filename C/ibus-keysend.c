@@ -1,5 +1,5 @@
 /*
- *  IBusにキーイベントを送信する
+ *  Send a key event to IBus daemon.
  */
 
 #include <ibus.h>

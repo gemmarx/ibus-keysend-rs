@@ -47,7 +47,7 @@ Options:
   <keysym>      The value of key symbol to send.
   <state>       Modifier state:  logical sum of (Shift(1) | Ctrl(4) | Alt(8)).
   bus           Show the name of unix socket to connect with IBus.
-", arg_keysym: u32, arg_mode: u32);
+", arg_keysym: u32, arg_state: u32);
 
 fn main() {
     let args: Args = Args::docopt().decode()
@@ -82,7 +82,7 @@ fn make_message(args: Args) -> Option<Message> {
     let triplet;
     if args.cmd_on { triplet = KEY_TO_ON }
     else if args.cmd_key {
-        let state = if args.flag_m {args.arg_mode} else {0u32};
+        let state = if args.flag_m {args.arg_state} else {0u32};
         triplet = [ args.arg_keysym, DUMMY_ZERO, state ]
     }
     else { triplet = KEY_TO_OFF }
