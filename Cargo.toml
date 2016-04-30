@@ -7,5 +7,4 @@ authors = ["gemmarx <gemmarx@users.noreply.github.com>"]
 dbus = { git = "https://github.com/gemmarx/dbus-rs", branch = "addffi/dbus_connection_open_private" }
 docopt = "*"
 rustc-serialize = "*"
-regex = "*"
 
