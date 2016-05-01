@@ -1,11 +1,10 @@
 [package]
 name = "ibus-keysend"
-version = "1.2.0"
+version = "1.3.0"
 authors = ["gemmarx <gemmarx@users.noreply.github.com>"]
 
 [dependencies]
+clap = { version="*", features = ["yaml"] }
 regex = "*"
-rustc-serialize = "*"
-docopt = "*"
 dbus = { git = "https://github.com/gemmarx/dbus-rs", branch = "addffi/dbus_connection_open_private" }
 

@@ -1,14 +1,14 @@
 
+#[macro_use]
+extern crate clap;
 extern crate regex;
-extern crate rustc_serialize;
-extern crate docopt;
 extern crate dbus;
 
 use std::io::prelude::*;
 use std::error::Error;
 use std::{process, env, fs};
+use clap::{App, ArgMatches};
 use regex::Regex;
-use docopt::Docopt;
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
 
@@ -24,51 +24,11 @@ const DUMMY_ZERO:     u32 = 0;  // Use for keycodes, which have no sense.
 const KEY_TO_ON:  [u32; 3] = [106, 44, 8];  // Alt-J
 const KEY_TO_OFF: [u32; 3] = [108, 46, 8];  // Alt-L
 
-const USAGE: &'static str = "
-ibus-keysend - send a key event to the IBus daemon.
-
-Before use, set key shortcuts of IBus-KKC as below,
-\"(alt j)\" : \"set-input-mode-hiragana\",
-\"(alt l)\" : \"set-input-mode-direct\",
-and it works as a mode shifter between Japanese and English input mode,
-or use \"key\" subcommand with the <keysym> you need.
-Values of KeySym and State can be got by \"xev\".
-
-Usage:
-  ibus-keysend [off]
-  ibus-keysend on
-  ibus-keysend key <keysym> [-m <state>]
-  ibus-keysend bus
-  ibus-keysend (-h | --help)
-
-Options:
-  -h, --help    Show this help.
-  [off]         Send \"Alt-L\".
-  on            Send \"Alt-J\".
-  key           Send a key event as you like.
-  <keysym>      The value of key symbol to send.
-  <state>       Modifier state:  logical sum of (Shift(1) | Ctrl(4) | Alt(8)).
-  bus           Show the name of unix socket to connect with IBus.
-";
-
-#[derive(Debug, RustcDecodable)]
-struct Args {
-    flag_m:     bool,
-    arg_keysym: u32,
-    arg_state:  u32,
-    cmd_off:    bool,
-    cmd_on:     bool,
-    cmd_key:    bool,
-    cmd_bus:    bool,
-}
-
 fn main() {
-    let args: Args = Docopt::new(USAGE)
-                     .and_then(|d| d.decode())
-                     .unwrap_or_else(|e| e.exit());
-
+    let arg_def = load_yaml!("cli.yml");
+    let args    = App::from_yaml(arg_def).get_matches();
     let address = get_address().unwrap_or_else(|e| panic!("{}", e));
-    if args.cmd_bus {
+    if args.is_present("bus") {
         println!("{}", address);
         process::exit(0);
     }
@@ -96,12 +56,13 @@ fn get_address() -> Result<String, Box<Error>> {
         .to_string())
 }
 
-fn make_message(args: Args) -> Result<Message, Box<Error>> {
+fn make_message(args: ArgMatches) -> Result<Message, Box<Error>> {
     let triplet;
-    if args.cmd_on { triplet = KEY_TO_ON }
-    else if args.cmd_key {
-        let state = if args.flag_m {args.arg_state} else {0u32};
-        triplet = [ args.arg_keysym, DUMMY_ZERO, state ]
+    if args.is_present("on") { triplet = KEY_TO_ON }
+    else if let Some(k) = args.subcommand_matches("key") {
+        triplet = [ try!(k.value_of("keysym").unwrap().parse::<u32>()),
+                    DUMMY_ZERO,
+                    try!(k.value_of("state").unwrap_or("0").parse::<u32>()) ]
     }
     else { triplet = KEY_TO_OFF }
 
