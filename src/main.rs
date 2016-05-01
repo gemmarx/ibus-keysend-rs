@@ -1,14 +1,12 @@
 
 #[macro_use]
 extern crate clap;
-extern crate regex;
 extern crate dbus;
 
 use std::io::prelude::*;
 use std::error::Error;
 use std::{process, env, fs};
 use clap::{App, ArgMatches};
-use regex::Regex;
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
 
@@ -48,12 +46,10 @@ fn get_address() -> Result<String, Box<Error>> {
     let _    = try!(fs::File::open(file.path())).read_to_string(buff);
     let line = try!(buff.lines()
                     .nth(1).ok_or("Lack of 2nd line in the busname file."));
+    let offs = 1 + try!(line.find('=')
+                        .ok_or("Cannot find '=' in IBUS_ADDRESS."));
 
-    Ok(try!(try!(try!(
-        Regex::new(r"^IBUS_ADDRESS=(.+)$"))
-        .captures(line).ok_or("Cannot find address after 'IBUS_ADDRESS='."))
-        .at(1).ok_or("Must be unreachable error."))
-        .to_string())
+    Ok(line[offs ..].to_string())
 }
 
 fn make_message(args: ArgMatches) -> Result<Message, Box<Error>> {
