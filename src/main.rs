@@ -1,14 +1,14 @@
 
-extern crate dbus;
+extern crate regex;
 extern crate rustc_serialize;
 extern crate docopt;
-extern crate regex;
+extern crate dbus;
 
-use docopt::Docopt;
 use std::io::prelude::*;
 use std::error::Error;
-use std::{fs, process};
+use std::{process, env, fs};
 use regex::Regex;
+use docopt::Docopt;
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
 
@@ -17,8 +17,8 @@ const IBUS_SEND_BUS_NAME:  &'static str = "org.freedesktop.IBus.KKC";
 const IBUS_SEND_OBJ_PATH:  &'static str = "/org/freedesktop/IBus/Engine/1";
 const IBUS_SEND_INTERFACE: &'static str = "org.freedesktop.IBus.Engine";
 const IBUS_SEND_METHOD:    &'static str = "ProcessKeyEvent";
-const IBUS_SEND_WAIT:               i32 = 1;    // [ms]?
-const DUMMY_ZERO:                   u32 = 0;    // Use for keycodes, which have no sense.
+const IBUS_SEND_WAIT: i32 = 1;  // [ms]?
+const DUMMY_ZERO:     u32 = 0;  // Use for keycodes, which have no sense.
 
 /* Key triplets: [Keysym, Keycode, Modifier-State] */
 const KEY_TO_ON:  [u32; 3] = [106, 44, 8];  // Alt-J
@@ -67,13 +67,13 @@ fn main() {
                      .and_then(|d| d.decode())
                      .unwrap_or_else(|e| e.exit());
 
-    let address = &(get_address().unwrap_or_else(|e| panic!("{}", e)));
+    let address = get_address().unwrap_or_else(|e| panic!("{}", e));
     if args.cmd_bus {
         println!("{}", address);
         process::exit(0);
     }
 
-    let connect = Connection::open_private(address)
+    let connect = Connection::open_private(&address)
                   .unwrap_or_else(|e| panic!("{}", e.message().unwrap()));
     let message = make_message(args).unwrap_or_else(|e| panic!("{}", e));
     let _ = connect.send_with_reply_and_block(message, IBUS_SEND_WAIT);
@@ -82,9 +82,8 @@ fn main() {
 fn get_address() -> Result<String, Box<Error>> {
     let buff = &mut String::new();
     let file = try!(try!(try!(
-                fs::read_dir(
-                    format!("{}/{}", try!(std::env::var("HOME")),
-                                     IBUS_BUSADDR_FILE)))
+                fs::read_dir(format!("{}/{}", try!(env::var("HOME")),
+                                              IBUS_BUSADDR_FILE)))
                 .nth(0).ok_or("Failed to get the busname file.")));
     let _    = try!(fs::File::open(file.path())).read_to_string(buff);
     let line = try!(buff.lines()
