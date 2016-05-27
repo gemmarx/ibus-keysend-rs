@@ -1,21 +1,21 @@
 name:   ibus-keysend
-about:  send a key event to the IBus daemon.
+about:  Sends a key event to the IBus daemon
 
 subcommands:
     - off:
-        about:  send "Alt-L".
+        about:  Sends "Alt-L"
     - on:
-        about:  send "Alt-J".
+        about:  Sends "Alt-J"
     - key:
-        about:  send a key event as you like.
+        about:  Sends a key event as you like
         args:
             - keysym:
-                help:  Value of key symbol to send.
+                help:  Value of key symbol to send
                 required:  true
                 index:  1
             - state:
                 short:  m
-                help:  Modifier state, which is logical sum of (Shift(1) | Ctrl(4) | Alt(8)).
+                help:  Modifier state, which is logical sum of (Shift(1) | Ctrl(4) | Alt(8))
                 takes_value:  true
     - bus:
-        about:  show the name of unix socket to connect with IBus.
+        about:  Shows the name of unix socket to connect with IBus

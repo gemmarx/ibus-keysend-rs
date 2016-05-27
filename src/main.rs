@@ -1,11 +1,10 @@
 
-#[macro_use]
-extern crate clap;
+#[macro_use] extern crate clap;
 extern crate dbus;
 
 use std::io::prelude::*;
 use std::error::Error;
-use std::{process, env, fs};
+use std::{io, process, env, fs};
 use clap::{App, ArgMatches};
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
@@ -22,18 +21,27 @@ const DUMMY_ZERO:     u32 = 0;  // Use for keycodes, which have no sense.
 const KEY_TO_ON:  [u32; 3] = [106, 44, 8];  // Alt-J
 const KEY_TO_OFF: [u32; 3] = [108, 46, 8];  // Alt-L
 
+const NONE_MSG001: &'static str = "Failed to get the busname file.";
+const NONE_MSG002: &'static str = "Lack of 2nd line in the busname file.";
+const NONE_MSG003: &'static str = "Cannot find '=' in IBUS_ADDRESS line.";
+const NONE_MSG004: &'static str = "Fail to Message::new_method_call().";
+
+macro_rules! err { () => { |e| {
+    writeln!(&mut io::stderr(), "{}", e).unwrap();
+    process::exit(1);
+} };}
+
 fn main() {
     let arg_def = load_yaml!("cli.yml");
     let args    = App::from_yaml(arg_def).get_matches();
-    let address = get_address().unwrap_or_else(|e| panic!("{}", e));
+    let address = get_address().unwrap_or_else(err![]);
     if args.is_present("bus") {
         println!("{}", address);
         process::exit(0);
     }
 
-    let connect = Connection::open_private(&address)
-                  .unwrap_or_else(|e| panic!("{}", e.message().unwrap()));
-    let message = make_message(args).unwrap_or_else(|e| panic!("{}", e));
+    let connect = Connection::open_private(&address).unwrap_or_else(err![]);
+    let message = make_message(&args).unwrap_or_else(err![]);
     let _ = connect.send_with_reply_and_block(message, IBUS_SEND_WAIT);
 }
 
@@ -42,17 +50,15 @@ fn get_address() -> Result<String, Box<Error>> {
     let file = try!(try!(try!(
                 fs::read_dir(format!("{}/{}", try!(env::var("HOME")),
                                               IBUS_BUSADDR_FILE)))
-                .nth(0).ok_or("Failed to get the busname file.")));
+                .nth(0).ok_or(NONE_MSG001)));
     let _    = try!(fs::File::open(file.path())).read_to_string(buff);
-    let line = try!(buff.lines()
-                    .nth(1).ok_or("Lack of 2nd line in the busname file."));
-    let offs = 1 + try!(line.find('=')
-                        .ok_or("Cannot find '=' in IBUS_ADDRESS."));
+    let line = try!(buff.lines().nth(1).ok_or(NONE_MSG002));
+    let offs = 1 + try!(line.find('=').ok_or(NONE_MSG003));
 
     Ok(line[offs ..].to_string())
 }
 
-fn make_message(args: ArgMatches) -> Result<Message, Box<Error>> {
+fn make_message(args: &ArgMatches) -> Result<Message, Box<Error>> {
     let triplet;
     if args.is_present("on") { triplet = KEY_TO_ON }
     else if let Some(k) = args.subcommand_matches("key") {
@@ -66,7 +72,7 @@ fn make_message(args: ArgMatches) -> Result<Message, Box<Error>> {
                                                     IBUS_SEND_OBJ_PATH,
                                                     IBUS_SEND_INTERFACE,
                                                     IBUS_SEND_METHOD)
-                           .ok_or("Fail to Message::new_method_call()."));
+                           .ok_or(NONE_MSG004));
     let wrap_key = |y: [u32; 3]| [UInt32(y[0]), UInt32(y[1]), UInt32(y[2])];
     message.append_items(&wrap_key(triplet));
     Ok(message)
