@@ -10,14 +10,15 @@ or use "key" subcommand with the "keysym" you need.
 Values of KeySym and State can be got by "xev".  
 
 
+#### Install
 ```sh
 # Build:
 $ git clone https://github.com/gemmarx/ibus-keysend-rs
 $ cd ibus-keysend-rs
 $ cargo build --release
 
-The name of command is "ibus-keysend".
-Try "target/release/ibus-keysend bus".
+# The name of command is "ibus-keysend".
+$ target/release/ibus-keysend bus
 
 # Install:
 $ cp target/release/ibus-keysend PATH/TO/BIN/

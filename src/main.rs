@@ -4,7 +4,7 @@ extern crate dbus;
 
 use std::io::prelude::*;
 use std::error::Error;
-use std::{io, process, env, fs};
+use std::{io, process, fs};
 use clap::{App, ArgMatches};
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
@@ -17,43 +17,50 @@ const IBUS_SEND_METHOD:    &'static str = "ProcessKeyEvent";
 const IBUS_SEND_WAIT: i32 = 1;  // [ms]?
 const DUMMY_ZERO:     u32 = 0;  // Use for keycodes, which have no sense.
 
-/* Key triplets: [Keysym, Keycode, Modifier-State] */
+// Key triplets: [Keysym, Keycode, Modifier-State]
 const KEY_TO_ON:  [u32; 3] = [106, 44, 8];  // Alt-J
 const KEY_TO_OFF: [u32; 3] = [108, 46, 8];  // Alt-L
 
-const NONE_MSG001: &'static str = "Failed to get the busname file.";
-const NONE_MSG002: &'static str = "Lack of 2nd line in the busname file.";
-const NONE_MSG003: &'static str = "Cannot find '=' in IBUS_ADDRESS line.";
-const NONE_MSG004: &'static str = "Fail to Message::new_method_call().";
-
-macro_rules! err { () => { |e| {
-    writeln!(&mut io::stderr(), "{}", e).unwrap();
-    process::exit(1);
-} };}
+const NONE_001: &'static str = "No such file or directory.";
+const NONE_002: &'static str = "Illeagal file format.";
+const NONE_003: &'static str = "Cannot create dbus message.";
 
 fn main() {
     let arg_def = load_yaml!("cli.yml");
     let args    = App::from_yaml(arg_def).get_matches();
-    let address = get_address().unwrap_or_else(err![]);
+
+    match exec(&args) {
+        Ok(_)  => process::exit(0),
+        Err(e) => {
+            writeln!(&mut io::stderr(), "{}", e).unwrap();
+            process::exit(1);
+        },
+    };
+}
+
+fn exec(args: &ArgMatches) -> Result<(), Box<Error>> {
+    let address = try!(get_address());
     if args.is_present("bus") {
         println!("{}", address);
-        process::exit(0);
+        return Ok(());
     }
 
-    let connect = Connection::open_private(&address).unwrap_or_else(err![]);
-    let message = make_message(&args).unwrap_or_else(err![]);
+    let connect = try!(Connection::open_private(&address));
+    let message = try!(make_message(&args));
     let _ = connect.send_with_reply_and_block(message, IBUS_SEND_WAIT);
+
+    Ok(())
 }
 
 fn get_address() -> Result<String, Box<Error>> {
     let buff = &mut String::new();
     let file = try!(try!(try!(
-                fs::read_dir(format!("{}/{}", try!(env::var("HOME")),
+                fs::read_dir(format!("{}/{}", env!("HOME"),
                                               IBUS_BUSADDR_FILE)))
-                .nth(0).ok_or(NONE_MSG001)));
+                .nth(0).ok_or(NONE_001)));
     let _    = try!(fs::File::open(file.path())).read_to_string(buff);
-    let line = try!(buff.lines().nth(1).ok_or(NONE_MSG002));
-    let offs = 1 + try!(line.find('=').ok_or(NONE_MSG003));
+    let line = try!(buff.lines().nth(1).ok_or(NONE_002));
+    let offs = 1 + try!(line.find('=').ok_or(NONE_002));
 
     Ok(line[offs ..].to_string())
 }
@@ -72,7 +79,7 @@ fn make_message(args: &ArgMatches) -> Result<Message, Box<Error>> {
                                                     IBUS_SEND_OBJ_PATH,
                                                     IBUS_SEND_INTERFACE,
                                                     IBUS_SEND_METHOD)
-                           .ok_or(NONE_MSG004));
+                           .ok_or(NONE_003));
     let wrap_key = |y: [u32; 3]| [UInt32(y[0]), UInt32(y[1]), UInt32(y[2])];
     message.append_items(&wrap_key(triplet));
     Ok(message)
