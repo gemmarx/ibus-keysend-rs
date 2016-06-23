@@ -4,7 +4,7 @@ extern crate dbus;
 
 use std::io::prelude::*;
 use std::error::Error;
-use std::{io, process, fs};
+use std::{io, process, fs, env};
 use clap::{App, ArgMatches};
 use dbus::{Connection, Message};
 use dbus::MessageItem::UInt32;
@@ -26,7 +26,7 @@ const NONE_002: &'static str = "Illeagal file format.";
 const NONE_003: &'static str = "Cannot create dbus message.";
 
 fn main() {
-    let arg_def = load_yaml!("cli.yml");
+    let arg_def = load_yaml!("src/cli.yml");
     let args    = App::from_yaml(arg_def).get_matches();
 
     match exec(&args) {
@@ -55,7 +55,7 @@ fn exec(args: &ArgMatches) -> Result<(), Box<Error>> {
 fn get_address() -> Result<String, Box<Error>> {
     let buff = &mut String::new();
     let file = try!(try!(try!(
-                fs::read_dir(format!("{}/{}", env!("HOME"),
+                fs::read_dir(format!("{}/{}", try!(env::var("HOME")),
                                               IBUS_BUSADDR_FILE)))
                 .nth(0).ok_or(NONE_001)));
     let _    = try!(fs::File::open(file.path())).read_to_string(buff);
