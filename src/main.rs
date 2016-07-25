@@ -26,7 +26,7 @@ const NONE_002: &'static str = "Illeagal file format.";
 const NONE_003: &'static str = "Cannot create dbus message.";
 
 fn main() {
-    let arg_def = load_yaml!("src/cli.yml");
+    let arg_def = load_yaml!("cli.yml");
     let args    = App::from_yaml(arg_def).get_matches();
 
     match exec(&args) {
