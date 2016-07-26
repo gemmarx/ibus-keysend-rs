@@ -1,5 +1,7 @@
 ibus-keysend
 ----
+[![Build Status](https://travis-ci.org/gemmarx/ibus-keysend-rs.svg?branch=master)](https://travis-ci.org/gemmarx/ibus-keysend-rs)
+
 Send a key event to the IBus daemon (on KKC engine).
 
 Before use, set key shortcuts on IBus-KKC as below,  
