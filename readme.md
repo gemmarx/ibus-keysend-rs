@@ -1,6 +1,7 @@
 ibus-keysend
 ----
 [![Build Status](https://travis-ci.org/gemmarx/ibus-keysend-rs.svg?branch=master)](https://travis-ci.org/gemmarx/ibus-keysend-rs)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 Send a key event to the IBus daemon (on KKC engine).
 
